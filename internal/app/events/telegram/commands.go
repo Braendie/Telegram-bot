@@ -24,6 +24,11 @@ func (p *Processor) doCmd(text string, chatID int, username string) error {
 	if isAddCmd(text) {
 		return p.savePage(chatID, text, username)
 	}
+	if len(text) != 0 {
+		if text[:1] != "/" {
+			return p.tg.SendMessage(chatID, "okay.")
+		}
+	}
 
 	switch text {
 	case RndCmd:

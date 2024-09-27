@@ -41,7 +41,6 @@ func (p *Processor) Fetch(limit int) ([]events.Event, error) {
 	if len(updates) == 0 {
 		return nil, nil
 	}
-
 	res := make([]events.Event, 0, len(updates))
 
 	for _, u := range updates {
