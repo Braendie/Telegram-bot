@@ -1,44 +1,62 @@
 package main
 
 import (
+	"database/sql"
 	"flag"
 	"log"
 
+	"github.com/Braendie/Telegram-bot/config"
 	tgClient "github.com/Braendie/Telegram-bot/internal/app/clients/telegram"
 	event_consumer "github.com/Braendie/Telegram-bot/internal/app/consumer/event-consumer"
 	"github.com/Braendie/Telegram-bot/internal/app/events/telegram"
-	"github.com/Braendie/Telegram-bot/internal/app/storage/files"
+	"github.com/Braendie/Telegram-bot/internal/app/storage/sqlstorage"
+	"github.com/BurntSushi/toml"
 )
 
-const (
-	tgBotHost   = "api.telegram.org"
-	storagePath = "storage"
-	batchSize   = 100
+var (
+	configPath string
 )
+
+func init() {
+	flag.StringVar(&configPath, "config-path", "config/telegram-bot.toml", "path to config file")
+}
 
 func main() {
-	t := mustToken()
+	flag.Parse()
+	config := config.NewConfig()
+	_, err := toml.DecodeFile(configPath, config)
+	if err != nil {
+		log.Fatal("can't decode toml file", err)
+	}
 
-	tgClient := tgClient.New(tgBotHost, t)
+	tgClient := tgClient.New(config.TGBotHost, config.TGToken)
 
-	eventsProcessor := telegram.New(tgClient, files.New(storagePath))
+	db, err := newDB(config.DatabaseURL)
+	if err != nil {
+		log.Fatal("can't create database", err)
+	}
+
+	defer db.Close()
+	storage := sqlstorage.New(db)
+	eventsProcessor := telegram.New(tgClient, storage)
 
 	log.Print("service started")
-	consumer := event_consumer.New(eventsProcessor, eventsProcessor, batchSize)
+	consumer := event_consumer.New(eventsProcessor, eventsProcessor, config.BatchSize)
 
 	if err := consumer.Start(); err != nil {
 		log.Fatal("service is stopped", err)
 	}
 }
 
-func mustToken() string {
-	token := flag.String("tg-bot-token", "", "token for access to telegram bot")
-
-	flag.Parse()
-
-	if *token == "" {
-		log.Fatal("token is not specified")
+func newDB(databaseURL string) (*sql.DB, error) {
+	db, err := sql.Open("postgres", databaseURL)
+	if err != nil {
+		return nil, err
 	}
 
-	return *token
+	if err := db.Ping(); err != nil {
+		return nil, err
+	}
+
+	return db, nil
 }

@@ -1,2 +1,5 @@
-telegrambot.exe
-storage
+
+*.exe
+/storage
+*.sql
+*.toml

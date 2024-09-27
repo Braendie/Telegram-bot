@@ -2,6 +2,7 @@ package storage
 
 import (
 	"crypto/sha1"
+	"database/sql"
 	"errors"
 	"fmt"
 	"io"
@@ -18,9 +19,13 @@ type Storage interface {
 	IsExists(p *Page) (bool, error)
 }
 
+// Page represents the page structure
 type Page struct {
-	URL      string
-	UserName string
+	ID          int
+	URL         string
+	UserName    string
+	Tag         sql.NullString
+	Description sql.NullString
 }
 
 func (p Page) Hash() (string, error) {
