@@ -17,6 +17,8 @@ type Storage interface {
 	PickRandom(userName string) (*Page, error)
 	Remove(p *Page) error
 	IsExists(p *Page) (bool, error)
+	PickTag(userName, tag string) ([]*Page, error)
+	PickTagRandom(userName, tag string) (*Page, error)
 }
 
 // Page represents the page structure

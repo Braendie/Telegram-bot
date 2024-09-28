@@ -63,6 +63,46 @@ func (s *DBStorage) PickRandom(userName string) (*storage.Page, error) {
 	}, nil
 }
 
+func (s *DBStorage) PickTag(userName, tag string) ([]*storage.Page, error) {
+	pages := []*storage.Page{}
+	query := `SELECT username, url, tag, description FROM pages WHERE username = $1 AND tag = $2`
+	rows, err := s.db.Query(query, userName, tag)
+	if err != nil {
+		return nil, e.Wrap("can't pick tag pages", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		p := &storage.Page{}
+		if err := rows.Scan(&p.UserName, &p.URL, &p.Tag, &p.Description); err != nil {
+			return nil, e.Wrap("can't pick tag pages", err)
+		}
+		pages = append(pages, p)
+	}
+
+	if len(pages) == 0 {
+		return nil, storage.ErrNoSavedPages
+	}
+
+	return pages, nil
+}
+
+func (s *DBStorage) PickTagRandom(userName, tag string) (*storage.Page, error) {
+	pages, err := s.PickTag(userName, tag)
+	if err != nil {
+		return nil, e.Wrap("can't pick tag random page", err)
+	}
+
+	// Select a random page
+	randompage := pages[rand.Intn(len(pages))]
+	return &storage.Page{
+		UserName:    randompage.UserName,
+		URL:         randompage.URL,
+		Tag:         randompage.Tag,
+		Description: randompage.Description,
+	}, nil
+}
+
 // Remove a page from the database
 func (s *DBStorage) Remove(p *storage.Page) error {
 	query := `DELETE FROM pages WHERE url = $1 AND username = $2`
