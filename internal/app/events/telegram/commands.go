@@ -13,6 +13,7 @@ import (
 	"github.com/Braendie/Telegram-bot/internal/app/storage"
 )
 
+// Command constants representing supported bot commands
 const (
 	RndCmd    = "/rnd"
 	HelpCmdEn = "/help_en"
@@ -22,6 +23,7 @@ const (
 	RndTagCmd = "/rndtag"
 )
 
+// doCmd processes a command received from the user, parsing the command type and executing the appropriate action
 func (p *Processor) doCmd(text string, chatID int, username string) error {
 	text = strings.TrimSpace(text)
 
@@ -71,6 +73,7 @@ func (p *Processor) doCmd(text string, chatID int, username string) error {
 	}
 }
 
+// savePage stores a new page in the storage with optional tags and descriptions
 func (p *Processor) savePage(chatID int, pageURL, username, tag, description string) error {
 	page := &storage.Page{
 		URL:         pageURL,
@@ -98,6 +101,7 @@ func (p *Processor) savePage(chatID int, pageURL, username, tag, description str
 	return nil
 }
 
+// sendRandom retrieves a random page for the user and sends it as a message, then removes it from storage
 func (p *Processor) sendRandom(chatID int, userName string) error {
 	page, err := p.storage.PickRandom(userName)
 	if err != nil && !errors.Is(err, storage.ErrNoSavedPages) {
@@ -126,6 +130,7 @@ func (p *Processor) sendRandom(chatID int, userName string) error {
 	return p.storage.Remove(page)
 }
 
+// sendTag retrieves all pages associated with a specific tag for the user and sends them as a message
 func (p *Processor) sendTag(chatID int, userName, tag string) error {
 	pages, err := p.storage.PickTag(userName, tag)
 	if err != nil && !errors.Is(err, storage.ErrNoSavedPages) {
@@ -158,6 +163,7 @@ func (p *Processor) sendTag(chatID int, userName, tag string) error {
 	return nil
 }
 
+// sendTagRandom retrieves a random page associated with a specific tag and sends it as a message
 func (p *Processor) sendTagRandom(chatID int, userName, tag string) error {
 	page, err := p.storage.PickTagRandom(userName, tag)
 	if err != nil && !errors.Is(err, storage.ErrNoSavedPages) {
@@ -179,22 +185,27 @@ func (p *Processor) sendTagRandom(chatID int, userName, tag string) error {
 	return p.storage.Remove(page)
 }
 
+// sendHelpEn sends the English help message to the user
 func (p *Processor) sendHelpEn(chatID int) error {
 	return p.tg.SendMessage(chatID, msgHelpEn+"\n\n"+msgHelpCmdEn)
 }
 
+// sendHelpRu sends the Russian help message to the user
 func (p *Processor) sendHelpRu(chatID int) error {
 	return p.tg.SendMessage(chatID, msgHelpRu+"\n\n"+msgHelpCmdRu)
 }
 
+// sendHello sends a greeting message to the user
 func (p *Processor) sendHello(chatID int) error {
 	return p.tg.SendMessage(chatID, msgHelloEn)
 }
 
+// isAddCmd checks if the text is a command to add a URL
 func isAddCmd(text string) bool {
 	return isURL(text)
 }
 
+// isURL verifies if the text is a valid URL by checking its structure and host validity
 func isURL(text string) bool {
 	if !strings.HasPrefix(text, "http://") && !strings.HasPrefix(text, "https://") {
 		text = "http://" + text
@@ -205,9 +216,8 @@ func isURL(text string) bool {
 		return false
 	}
 
-	// Проверка хоста на валидность (домен или IP)
 	hostname := u.Hostname()
-	// Регулярное выражение для проверки корректности доменного имени или IP-адреса
+
 	validHost := regexp.MustCompile(`^([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,6}$|^(\d{1,3}\.){3}\d{1,3}$`)
 	return validHost.MatchString(hostname)
 }

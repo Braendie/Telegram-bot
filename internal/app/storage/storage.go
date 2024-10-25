@@ -12,6 +12,8 @@ import (
 
 var ErrNoSavedPages = errors.New("no saved page")
 
+// Storage defines the interface for managing pages, including saving, retrieving,
+// deleting, and checking if pages exist
 type Storage interface {
 	Save(p *Page) error
 	PickRandom(userName string) (*Page, error)
@@ -21,7 +23,7 @@ type Storage interface {
 	PickTagRandom(userName, tag string) (*Page, error)
 }
 
-// Page represents the page structure
+// Page represents the structure of a saved page
 type Page struct {
 	ID          int
 	URL         string
@@ -30,6 +32,7 @@ type Page struct {
 	Description sql.NullString
 }
 
+// Hash calculates a unique SHA-1 hash for the page based on its URL and username
 func (p Page) Hash() (string, error) {
 	h := sha1.New()
 

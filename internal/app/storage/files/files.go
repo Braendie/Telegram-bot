@@ -15,16 +15,19 @@ import (
 
 const defaultPerm = 0774
 
+// Storage handles file-based storage for user pages
 type Storage struct {
 	basePath string
 }
 
+// New initializes and returns a new Storage instance with the specified base path
 func New(basePath string) Storage {
 	return Storage{
 		basePath: basePath,
 	}
 }
 
+// Save stores a page for a user by encoding it and saving it to a file
 func (s Storage) Save(page *storage.Page) error {
 	fPath := filepath.Join(s.basePath, page.UserName)
 
@@ -51,6 +54,7 @@ func (s Storage) Save(page *storage.Page) error {
 	return nil
 }
 
+// PickRandom selects a random page from the user's stored pages
 func (s Storage) PickRandom(userName string) (*storage.Page, error) {
 	path := filepath.Join(s.basePath, userName)
 
@@ -72,6 +76,7 @@ func (s Storage) PickRandom(userName string) (*storage.Page, error) {
 	return s.decodePage(filepath.Join(path, file.Name()))
 }
 
+// Remove deletes the specified page file from the storage
 func (s Storage) Remove(p *storage.Page) error {
 	fileName, err := fileName(p)
 	if err != nil {
@@ -87,6 +92,7 @@ func (s Storage) Remove(p *storage.Page) error {
 	return nil
 }
 
+// IsExists checks if the specified page file exists in the storage
 func (s Storage) IsExists(p *storage.Page) (bool, error) {
 	fileName, err := fileName(p)
 	if err != nil {
@@ -105,6 +111,7 @@ func (s Storage) IsExists(p *storage.Page) (bool, error) {
 	return true, nil
 }
 
+// decodePage decodes and returns a Page object from the specified file
 func (s Storage) decodePage(filePath string) (*storage.Page, error) {
 	f, err := os.Open(filePath)
 	if err != nil {
@@ -121,6 +128,7 @@ func (s Storage) decodePage(filePath string) (*storage.Page, error) {
 	return &p, nil
 }
 
+// fileName generates a unique filename for the specified page based on its hash
 func fileName(p *storage.Page) (string, error) {
 	return p.Hash()
 }

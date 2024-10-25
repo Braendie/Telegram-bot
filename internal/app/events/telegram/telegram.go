@@ -9,12 +9,14 @@ import (
 	"github.com/Braendie/Telegram-bot/internal/app/storage"
 )
 
+// Processor handles event processing from the Telegram client and manages interactions with the storage
 type Processor struct {
 	tg      *telegram.Client
 	offset  int
 	storage storage.Storage
 }
 
+// Meta contains metadata about a Telegram message, including chat ID and username
 type Meta struct {
 	ChatID   int
 	UserName string
@@ -25,6 +27,7 @@ var (
 	ErrUnknownMetaType = errors.New("unknown meta type")
 )
 
+// New creates and returns a new Processor with the provided Telegram client and storage
 func New(client *telegram.Client, storage storage.Storage) *Processor {
 	return &Processor{
 		tg:      client,
@@ -32,6 +35,7 @@ func New(client *telegram.Client, storage storage.Storage) *Processor {
 	}
 }
 
+// Fetch retrieves a batch of events from the Telegram API and returns them as an array of Event structs
 func (p *Processor) Fetch(limit int) ([]events.Event, error) {
 	updates, err := p.tg.Updates(p.offset, limit)
 	if err != nil {
@@ -52,6 +56,7 @@ func (p *Processor) Fetch(limit int) ([]events.Event, error) {
 	return res, nil
 }
 
+// Process takes an Event and processes it based on its type
 func (p *Processor) Process(event events.Event) error {
 	switch event.Type {
 	case events.Message:
@@ -61,6 +66,7 @@ func (p *Processor) Process(event events.Event) error {
 	}
 }
 
+// processMessage handles a message event, retrieving metadata and executing commands
 func (p *Processor) processMessage(event events.Event) error {
 	meta, err := meta(event)
 	if err != nil {
@@ -74,6 +80,7 @@ func (p *Processor) processMessage(event events.Event) error {
 	return nil
 }
 
+// meta extracts and returns metadata from an event, ensuring it matches the expected Meta type
 func meta(event events.Event) (Meta, error) {
 	res, ok := event.Meta.(Meta)
 	if !ok {
@@ -83,6 +90,7 @@ func meta(event events.Event) (Meta, error) {
 	return res, nil
 }
 
+// event converts a Telegram Update into an Event, extracting relevant information
 func event(upd telegram.Update) events.Event {
 	updType := fetchType(upd)
 
@@ -101,6 +109,7 @@ func event(upd telegram.Update) events.Event {
 	return res
 }
 
+// fetchType determines the event type based on the contents of the Telegram Update
 func fetchType(upd telegram.Update) events.Type {
 	if upd.Message == nil {
 		return events.Unknown
@@ -109,6 +118,7 @@ func fetchType(upd telegram.Update) events.Type {
 	return events.Message
 }
 
+// fetchText retrieves the text content from the Telegram Update, if available
 func fetchText(upd telegram.Update) string {
 	if upd.Message == nil {
 		return ""

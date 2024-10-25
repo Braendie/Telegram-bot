@@ -63,6 +63,7 @@ func (s *DBStorage) PickRandom(userName string) (*storage.Page, error) {
 	}, nil
 }
 
+// PickTag retrieves all pages with a specific tag for a user
 func (s *DBStorage) PickTag(userName, tag string) ([]*storage.Page, error) {
 	pages := []*storage.Page{}
 	query := `SELECT username, url, tag, description FROM pages WHERE username = $1 AND tag = $2`
@@ -87,6 +88,7 @@ func (s *DBStorage) PickTag(userName, tag string) ([]*storage.Page, error) {
 	return pages, nil
 }
 
+// PickTagRandom retrieves a random page with a specific tag for a user
 func (s *DBStorage) PickTagRandom(userName, tag string) (*storage.Page, error) {
 	pages, err := s.PickTag(userName, tag)
 	if err != nil {
