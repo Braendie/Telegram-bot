@@ -33,11 +33,9 @@ func (p *Processor) doCmd(text string, chatID int, username string) error {
 		if len(words) < 2 {
 			return p.savePage(chatID, words[0], username, "", "")
 		} else if len(words) < 3 {
-			if strings.HasPrefix(words[1], "#desc:") {
-				return p.savePage(chatID, words[0], username, "", strings.TrimPrefix(strings.Join(words[1:], " "), "#desc:"))
-			}
-
 			return p.savePage(chatID, words[0], username, words[1], "")
+		} else if strings.HasPrefix(words[1], "#desc:") {
+			return p.savePage(chatID, words[0], username, "", strings.TrimPrefix(strings.TrimPrefix(strings.Join(words[1:], " "), "#desc:"), " "))
 		}
 
 		return p.savePage(chatID, words[0], username, words[1], strings.Join(words[2:], " "))
@@ -59,8 +57,14 @@ func (p *Processor) doCmd(text string, chatID int, username string) error {
 	case HelpCmdRu:
 		return p.sendHelpRu(chatID)
 	case TagCmd:
+		if len(words) < 2 {
+			return p.tg.SendMessage(chatID, msgWrongTagCmd)
+		}
 		return p.sendTag(chatID, username, words[1])
 	case RndTagCmd:
+		if len(words) < 2 {
+			return p.tg.SendMessage(chatID, msgWrongRndTagCmd)
+		}
 		return p.sendTagRandom(chatID, username, words[1])
 	default:
 		return p.tg.SendMessage(chatID, msgUnknownCommand)

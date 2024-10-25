@@ -44,4 +44,6 @@ const (
 	msgSaved          = "Saved! 🫡"
 	msgAlreadyExists  = "You have already have this page in your list 🤫"
 	msgTagIsEmpty     = "This tag is empty 😅"
+	msgWrongTagCmd    = "You need to send it like this: /tag [Your tag] 🤓"
+	msgWrongRndTagCmd = "You need to send it like this: /rndtag [Your tag] 🤓"
 )
